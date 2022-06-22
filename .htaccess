@@ -1,0 +1,4 @@
+RewriteEngine on
+RewriteRule ^index\.js / [R,NC,L]
+RewriteRule .*\.(js|css)$ - [F]
+Options -Indexes

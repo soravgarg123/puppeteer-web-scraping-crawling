@@ -31,7 +31,7 @@ var mail = nodemailer.createTransport({
 
 var mailOptions = {
    from: 'it.scrapping@vservesolution.com',
-   to: 'soravgarg123@gmail.com',
+   to: 'soravgarg123@gmail.com, nandhini@vservesolution.com',
    subject: '',
    html: '' ,
    attachments: []
@@ -47,6 +47,18 @@ let jobsController = {nodesk,himalayas,flex,builtin}
         setTimeout(resolve, time)
      });
   }
+
+  /**
+      To Get Current Date
+  **/
+  function getCurrentDate(){
+    var today = new Date();
+    var dd = (today.getDate() >= 10) ? today.getDate() : "0"+today.getDate();
+    var mm = (today.getMonth()+1 >= 10) ? today.getMonth()+1 : "0"+(today.getMonth()+1);
+    var yyyy = today.getFullYear();
+    var date = yyyy+'-'+mm+'-'+dd;
+    return date;
+   }
 
   /**
       For Nodesk Jobs Data
@@ -96,15 +108,16 @@ let jobsController = {nodesk,himalayas,flex,builtin}
         }
 
         /* JSON 2 CSV */
+        let CurrentDate = await getCurrentDate();
         jsonToCsv.json2csv(Response, (err, csv) => {
             if (err) {
                 throw err;
             }
 
             /* Send Email */
-            mailOptions.subject = 'Nodesk Jobs';
+            mailOptions.subject = 'No Desk';
             mailOptions.html = 'Nodesk Today Jobs';
-            mailOptions.attachments = [{filename: 'nodesk-jobs.csv', content : csv}];
+            mailOptions.attachments = [{filename: `nodesk-jobs-${CurrentDate}.csv`, content : csv}];
             mail.sendMail(mailOptions, function(error, info){
                   if (error) {
                     console.log(error);
@@ -164,17 +177,32 @@ let jobsController = {nodesk,himalayas,flex,builtin}
             }
         }
 
+        if(Response.length === 0){
+            return res.status(500).json({ResponseCode: 500, Message: "Today jobs not found !!"});
+        }
+
+        /* JSON 2 CSV */
+        let CurrentDate = await getCurrentDate();
         jsonToCsv.json2csv(Response, (err, csv) => {
             if (err) {
                 throw err;
             }
 
-            // write CSV to a file
-            fs.writeFileSync('himalayas-jobs.csv', csv);
+            /* Send Email */
+            mailOptions.subject = 'Himalayas';
+            mailOptions.html = 'Himalayas Today Jobs';
+            mailOptions.attachments = [{filename: `himalayas-jobs-${CurrentDate}.csv`, content : csv}];
+            mail.sendMail(mailOptions, function(error, info){
+                  if (error) {
+                    console.log(error);
+                  } else {
+                    console.log('Email sent: ' + info.response);
+                  }
+            });
         })
 
         await browser.close();
-        return res.status(200).json({ResponseCode: 200, TotalRecords : Response.length , Data:Response, Message: "Success."});
+        return res.status(200).json({ResponseCode: 200, TotalRecords : Response.length , Data:'himalayas-jobs.csv', Message: "Success."});
       } catch (e) {
         console.log('err',e)
         browser.close();
@@ -335,7 +363,7 @@ let jobsController = {nodesk,himalayas,flex,builtin}
         /* Load Cheerio HTML */
         var $ = cheerio.load(await page.content());
         BuiltInResponse = [];
-        PageNo = 2;
+        PageNo = PageNo + 1;
         var IsNextPage = true;
         let totalJobs = $('div.show_incentive > div.job-item').length;
         for (var i = 1; i <= totalJobs; i++) {
@@ -361,18 +389,32 @@ let jobsController = {nodesk,himalayas,flex,builtin}
             await scrapePaginationData(page);
         }
 
-        /* Create CSV */
+        if(BuiltInResponse.length === 0){
+            return res.status(500).json({ResponseCode: 500, Message: "Today jobs not found !!"});
+        }
+
+        /* JSON 2 CSV */
+        let CurrentDate = await getCurrentDate();
         jsonToCsv.json2csv(BuiltInResponse, (err, csv) => {
             if (err) {
                 throw err;
             }
 
-            // write CSV to a file
-            fs.writeFileSync('builtin-jobs.csv', csv);
+            /* Send Email */
+            mailOptions.subject = 'Builtin';
+            mailOptions.html = 'Builtin Today Jobs';
+            mailOptions.attachments = [{filename: `builtin-jobs-${CurrentDate}.csv`, content : csv}];
+            mail.sendMail(mailOptions, function(error, info){
+                  if (error) {
+                    console.log(error);
+                  } else {
+                    console.log('Email sent: ' + info.response);
+                  }
+            });
         })
 
         await browser.close();
-        return res.status(200).json({ResponseCode: 200, TotalRecords : BuiltInResponse.length , Data:BuiltInResponse, Message: "Success."});
+        return res.status(200).json({ResponseCode: 200, TotalRecords : BuiltInResponse.length , Data:'builtin-jobs.csv', Message: "Success."});
       } catch (e) {
         console.log('err',e)
         browser.close();

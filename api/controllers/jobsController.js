@@ -31,7 +31,7 @@ var mail = nodemailer.createTransport({
 
 var mailOptions = {
    from: 'it.scrapping@vservesolution.com',
-   to: 'soravgarg123@gmail.com, nandhini@vservesolution.com',
+   to: 'soravgarg123@gmail.com, nandhini@vservesolution.com, jenitadevi99@gmail.com, itsupport@vservesolution.com, anshul.b@vservesolution.com, siva@vservesolution.com',
    subject: '',
    html: '' ,
    attachments: []
@@ -357,7 +357,6 @@ let jobsController = {nodesk,himalayas,flex,builtin}
         await page.goto(`https://builtin.com/jobs?page=1`, { waitUntil: 'networkidle0', timeout: 0 });
         await page.waitForSelector("div.show_incentive > div", {timeout: 30000});
 
-        await delay(5000);
         await autoScroll(page);
 
         /* Load Cheerio HTML */
@@ -416,8 +415,33 @@ let jobsController = {nodesk,himalayas,flex,builtin}
         await browser.close();
         return res.status(200).json({ResponseCode: 200, TotalRecords : BuiltInResponse.length , Data:'builtin-jobs.csv', Message: "Success."});
       } catch (e) {
+
         console.log('err',e)
         browser.close();
+
+        if(BuiltInResponse.length === 0){
+            return res.status(500).json({ResponseCode: 500, Message: "Today jobs not found !!"});
+        }
+
+        /* JSON 2 CSV */
+        let CurrentDate = await getCurrentDate();
+        jsonToCsv.json2csv(BuiltInResponse, (err, csv) => {
+            if (err) {
+                throw err;
+            }
+
+            /* Send Email */
+            mailOptions.subject = 'Builtin';
+            mailOptions.html = 'Builtin Today Jobs';
+            mailOptions.attachments = [{filename: `builtin-jobs-${CurrentDate}.csv`, content : csv}];
+            mail.sendMail(mailOptions, function(error, info){
+                  if (error) {
+                    console.log(error);
+                  } else {
+                    console.log('Email sent: ' + info.response);
+                  }
+            });
+        })
         return res.status(500).json({ResponseCode: 500, Data:[], Message: "Some error occured Or data not found, please try again."});
       }
   }
@@ -452,7 +476,6 @@ let jobsController = {nodesk,himalayas,flex,builtin}
     await page.goto(`https://builtin.com/jobs?page=${PageNo}`, { waitUntil: 'networkidle0', timeout: 0 });
     await page.waitForSelector("div.show_incentive > div", {timeout: 30000});
 
-    await delay(5000);
     await autoScroll(page);
 
     /* Load Cheerio HTML */

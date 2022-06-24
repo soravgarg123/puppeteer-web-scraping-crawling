@@ -357,6 +357,7 @@ let jobsController = {nodesk,himalayas,flex,builtin}
         await page.goto(`https://builtin.com/jobs?page=1`, { waitUntil: 'networkidle0', timeout: 0 });
         await page.waitForSelector("div.show_incentive > div", {timeout: 30000});
 
+        await delay(3000);
         await autoScroll(page);
 
         /* Load Cheerio HTML */
@@ -476,6 +477,7 @@ let jobsController = {nodesk,himalayas,flex,builtin}
     await page.goto(`https://builtin.com/jobs?page=${PageNo}`, { waitUntil: 'networkidle0', timeout: 0 });
     await page.waitForSelector("div.show_incentive > div", {timeout: 30000});
 
+    await delay(3000);
     await autoScroll(page);
 
     /* Load Cheerio HTML */

@@ -8,6 +8,7 @@ const app   = require('express')(),
 	  express = require('express'),
     cors    = require('cors'),
 	  http   = require('http'),
+    https  = require('https'),
     fs = require('fs'),
     compression = require('compression'),
 	  bodyParser = require('body-parser');
@@ -19,7 +20,15 @@ require('dotenv').config();
 require('pretty-error').start();
 
 /* Create Server */
-var server = http.createServer(app);
+if(process.env.IS_HEADLESS == 1){ // live
+  var options = {
+    key: fs.readFileSync('/etc/apache2/ssl/sketchlookup.apexwin-decrypt.key'),
+    cert: fs.readFileSync('/etc/apache2/ssl/sketchlookup.apexwin.crt')
+  };
+  var server = https.createServer(options, app);
+}else{ // local
+  var server = http.createServer(app);
+}
 
 /* To set port */
 app.set('port', process.env.PORT || 3000);
